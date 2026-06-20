@@ -5,7 +5,7 @@ import Register from './pages/register.jsx'
 import Dashboard from './pages/dashboard.jsx'
 import DatasetPage from './pages/datasetpage.jsx'
 import ProtectedRoute from './pages/protectedroute.jsx'
-
+import Generator from './pages/generator.jsx'
 
 function App() {
   return (
@@ -19,6 +19,7 @@ function App() {
             </ProtectedRoute>
         } />
         <Route path='/projects/:projectID' element={<DatasetPage />}/>
+        <Route path='/generator/:projectID' element={<Generator />}/>
       </Routes>
     </BrowserRouter>
   )

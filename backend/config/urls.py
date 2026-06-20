@@ -19,11 +19,13 @@ from django.urls import path,include
 from accounts import urls as accounts_urls
 from projects import urls as projects_urls
 from datasets import urls as datasets_urls
+from generator import urls as generator_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include(accounts_urls)),
     path('projects/', include(projects_urls)),
     path('datasets/', include(datasets_urls)),
+    path('generator/',include(generator_urls)),
 
 ]
