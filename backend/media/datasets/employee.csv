@@ -1,0 +1,11 @@
+employee_id,name,email,department,salary,age,is_active
+1001,John Doe,john.doe@gmail.com,IT,50000,28,True
+1002,Jane Smith,jane.smith@gmail.com,HR,60000,31,True
+1003,Michael Brown,michael.brown@gmail.com,Finance,55000,35,False
+1004,Sarah Wilson,sarah.wilson@gmail.com,IT,72000,29,True
+1005,David Lee,david.lee@gmail.com,Marketing,48000,26,True
+1006,Emily Davis,emily.davis@gmail.com,HR,61000,33,True
+1007,Chris Johnson,chris.johnson@gmail.com,Finance,58000,30,False
+1008,Lisa Taylor,lisa.taylor@gmail.com,Operations,53000,27,True
+1009,Robert Miller,robert.miller@gmail.com,IT,75000,36,True
+1010,Anna White,anna.white@gmail.com,Marketing,49000,25,True

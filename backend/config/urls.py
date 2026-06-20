@@ -16,16 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.conf import settings
+from django.conf.urls.static import static
 from accounts import urls as accounts_urls
 from projects import urls as projects_urls
 from datasets import urls as datasets_urls
 from generator import urls as generator_urls
-
+from uploads import urls as uploads_urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include(accounts_urls)),
     path('projects/', include(projects_urls)),
     path('datasets/', include(datasets_urls)),
     path('generator/',include(generator_urls)),
+    path('uploads/',include(uploads_urls)),
 
 ]
+
+if settings.DEBUG: urlpatterns+= static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
