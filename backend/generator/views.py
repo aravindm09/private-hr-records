@@ -7,11 +7,15 @@ from django.shortcuts import get_object_or_404
 from projects.models import Project
 from datasets.models import DatasetField
 from datasets.serializers import DatasetFieldSerializer
+from uploads.models import UploadedDatasets
+from .ai_generator import generate_synthetic_data
 
 from faker import Faker
 import random
+import os 
+from django.conf import settings
 
-
+os.makedirs(os.path.join(settings.MEDIA_ROOT,"synthetic"),exist_ok=True)
 fake = Faker()
 
 class GenerateDatasetView(APIView):
@@ -39,3 +43,20 @@ class GenerateDatasetView(APIView):
                     pass
             rows.append(row)
         return Response(rows)
+
+class GenerateSyntheticDatasetView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post (self, request, pk):
+        project= get_object_or_404(Project,id=pk , user = request.user)
+        dataset = project.uploaded_datasets.last()
+        if not dataset:
+            return Response(
+                {"error": "No dataset uploaded"}, status= 400
+            )
+        rows = request.data.get("rows", 100)
+        synthetic_df = generate_synthetic_data(dataset.file.path,rows)
+        
+        file_name = f"synthetic_project_{project.id}.csv"
+        file_path = os.path.join(settings.MEDIA_ROOT,"synthetic",file_name)
+        synthetic_df.to_csv(file_path,index=False)
+        return Response({"message":"Synthetic dataset generated","file":f"/media/synthetic/{file_name}","rows": len(synthetic_df)})

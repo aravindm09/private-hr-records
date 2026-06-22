@@ -53,3 +53,14 @@ class DatasetDeleteView(APIView):
         field = get_object_or_404(DatasetField,id=pk , project__user= request.user)
         field.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class DatasetFieldUpdateView(APIView):
+    permission_classes=[IsAuthenticated]
+
+    def put(self, request,pk):
+        field = get_object_or_404(DatasetField,id=pk, project__user=request.user)
+        seralizer = DatasetFieldSerializer(field,data=request.data, partial=True)
+        if seralizer.is_valid():
+            seralizer.save()
+            return Response(seralizer.data)
+        return Response(seralizer.errors,status=400)
