@@ -57,7 +57,8 @@ class GenerateSyntheticDatasetView(APIView):
                 {"error": "No dataset uploaded"}, status= 400
             )
         rows = request.data.get("rows", 100)
-        synthetic_df = generate_synthetic_data(dataset.file.path,fields,rows)
+        privacy_level = request.data.get("privacy_level","medium")
+        synthetic_df = generate_synthetic_data(dataset.file.path,fields,rows,privacy_level)
         original_df = pd.read_csv(dataset.file.path)
         for col in original_df.columns:
             if col not in synthetic_df.columns:
@@ -113,7 +114,7 @@ class DatasetQualityView(APIView):
 
         for column in categorial_columns:
             if column in ["name","email"]:
-                pass
+                continue
             original_distribution = ( original_df[column].value_counts(normalize=True).mul(100).round(2).to_dict())
             synthetic_distribution = (synthetic_df[column].value_counts(normalize=True).mul(100).round(2).to_dict())
             categorial_report[column]= {
@@ -142,3 +143,50 @@ class DatasetQualityView(APIView):
 
                          "quality_metrics": quality_report,
                          "categorial_metrics": categorial_report})
+    
+class DatasetPrivacyView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request,pk):
+        project = get_object_or_404(Project,id=pk,user=request.user)
+
+        original_dataset = project.uploaded_datasets.last()
+
+        synthetic_file = os.path.join(settings.MEDIA_ROOT,'synthetic',f'synthetic_project_{project.id}.csv')
+
+        original_df = pd.read_csv(original_dataset.file.path)
+
+        synthetic_df = pd.read_csv(synthetic_file)
+
+        original_df.columns =(original_df.columns.str.strip().str.lower())
+
+        synthetic_df.columns =(synthetic_df.columns.str.strip().str.lower())
+
+        duplicate_count =0 
+
+        for _,row in synthetic_df.iterrows():
+            if original_df.eq(row).all(axis=1).any():
+                duplicate_count+=1
+
+        total_rows =len(synthetic_df)
+
+        duplicate_percentage =round((duplicate_count/total_rows)*100,2)
+
+        privacy_score =max(0,round(100 - duplicate_percentage,2))
+
+        if privacy_score>=90:
+            privacy_rating ='Excellent'
+        elif privacy_score>=75:
+            privacy_rating= "Good"
+        elif privacy_score>= 60:
+            privacy_rating ="Fair"
+        else: privacy_rating = 'Poor'
+
+        return Response({
+            "total_synthetic_rows": total_rows,
+            "duplicate_rows": duplicate_count,
+            "duplicate_percentage": duplicate_percentage,
+
+            "privacy_score": privacy_score,
+            "privacy_rating": privacy_rating,
+            
+        })
