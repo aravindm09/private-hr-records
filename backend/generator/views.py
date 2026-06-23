@@ -66,3 +66,49 @@ class GenerateSyntheticDatasetView(APIView):
         file_path = os.path.join(settings.MEDIA_ROOT,"synthetic",file_name)
         synthetic_df.to_csv(file_path,index=False)
         return Response({"message":"Synthetic dataset generated","file":f"/media/synthetic/{file_name}","rows": len(synthetic_df)})
+
+
+class DatasetQualityView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request,pk):
+        project = get_object_or_404(Project, id =pk , user= request.user)
+        original_dataset = project.uploaded_datasets.last()
+        synthetic_file = os.path.join(settings.MEDIA_ROOT,"synthetic",f"synthetic_project_{project.id}.csv")
+        if not os.path.exists(synthetic_file):
+            return Response({"error": "Generate synthetic dataset first"},status=400)
+        original_df = pd.read_csv(original_dataset.file.path)
+        synthetic_df = pd.read_csv(synthetic_file)
+        quality_report = {}
+        total_difference = 0
+        count = 0 
+        numeric_columns = original_df.select_dtypes(include = ["int64","float64"]).columns
+        for column in numeric_columns:
+            original_mean = original_df[column].mean()
+            synthetic_mean = synthetic_df[column].mean()
+            if original_mean !=0:
+                difference_percent = abs((original_mean - synthetic_mean)/original_mean ) * 100
+            else : difference_percent =0
+            
+            if column != 'employee_id':
+                total_difference += difference_percent
+                count += 1
+            quality_report[column]= {
+                "original_mean": round(original_mean,2),
+                "synthetic_mean": round(synthetic_mean,2),
+
+                "difference_percentage": round(difference_percent,2),
+                "original_Min": original_df[column].min(),
+                "synthetic_min": synthetic_df[column].min(),
+                "original_max": original_df[column].max(),
+                "synthetic_max": synthetic_df[column].max()
+            }
+        if count > 0:
+            average_difference = total_difference/count
+        else: average_difference = 0 
+        quality_score =max(0,round(100- average_difference,2))
+        return Response({"original_rows": len(original_df),
+                         "synthetic_rows": len(synthetic_df),
+                         "original_columns":len(original_df.columns),
+                         "synthetic_columns":len(synthetic_df.columns),
+                         "quality_score": quality_score,
+                         "quality_metrics": quality_report})
