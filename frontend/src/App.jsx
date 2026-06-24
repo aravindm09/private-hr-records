@@ -9,6 +9,7 @@ import Generator from './pages/generator.jsx'
 import UploadDataset from './pages/uploadDataset.jsx'
 import SchemaManagement from './pages/schemamanagement.jsx'
 import GenerateSyntheticDataset from './pages/generatesyntheticdataset.jsx'
+import ProjectDetail from './pages/projectdetail.jsx';
 function App() {
   return (
     <BrowserRouter>
@@ -24,6 +25,7 @@ function App() {
         <Route path='/uploads/:projectID' element={<ProtectedRoute> <UploadDataset /> </ProtectedRoute>}/>
         <Route path='/projects/:projectID/schema' element={<ProtectedRoute> <SchemaManagement /> </ProtectedRoute>}/>
         <Route path='/projects/:projectID/generate' element={<ProtectedRoute> <GenerateSyntheticDataset /> </ProtectedRoute>}/>
+        <Route path='/projects/:projectID/details' element={<ProtectedRoute> <ProjectDetail /> </ProtectedRoute>}/>
       </Routes>
     </BrowserRouter>
   )

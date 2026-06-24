@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "datasets",
     "generator",
     "uploads",
+    "dashboard",
     
 ]
 

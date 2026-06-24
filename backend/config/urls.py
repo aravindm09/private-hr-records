@@ -23,6 +23,7 @@ from projects import urls as projects_urls
 from datasets import urls as datasets_urls
 from generator import urls as generator_urls
 from uploads import urls as uploads_urls
+from dashboard import urls as dashboard_urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include(accounts_urls)),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('datasets/', include(datasets_urls)),
     path('generator/',include(generator_urls)),
     path('uploads/',include(uploads_urls)),
+    path('dashboard/',include(dashboard_urls)),
 
 ]
 

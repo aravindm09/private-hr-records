@@ -1,5 +1,5 @@
 import api from "../api/axios"
-import {useNavigate} from "react-router-dom"
+import {useNavigate,} from "react-router-dom"
 import {useState,useEffect} from "react"
 
 function Dashboard() {
@@ -8,6 +8,7 @@ function Dashboard() {
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [editId, setEditId] = useState(null)
+    const [dashboardStats,setDashboardStats] = useState(null)
 
     const fetchProjects = async () => {
         try {
@@ -20,16 +21,32 @@ function Dashboard() {
         }
     }
 
+    const fetchDashboardStats = async() =>{
+        try{
+            const token = localStorage.getItem("access")
+            const response = await api.get(`/dashboard/stats/`,{headers:{Authorization:`Bearer ${token}`}})
+            console.log(response.data)
+            setDashboardStats(response.data)
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+        
     useEffect(() => {
-        fetchProjects()
+        fetchProjects(),
+        fetchDashboardStats()
     }, [])
+
+   
 
     const handleCreateProject = async () => {
         try {
             const token = localStorage.getItem("access")
             const response = await api.post("/projects/create/", { name, description }, { headers: { Authorization: `Bearer ${token}` } })
             console.log(response.data)
-            fetchProjects() // Refresh the project list
+            fetchProjects()
+            fetchDashboardStats() // Refresh the project list
             setName("")
             setDescription("")
         } catch (error) {
@@ -42,7 +59,8 @@ function Dashboard() {
             const token = localStorage.getItem("access")
             const response = await api.delete(`/projects/${Id}/delete/`, { headers: { Authorization: `Bearer ${token}` } })
             console.log(response.data)
-            await fetchProjects() // Refresh the project list 
+            await fetchProjects()
+            await fetchDashboardStats() // Refresh the project list 
         } catch (error) {
             console.log(error)
         }
@@ -81,7 +99,8 @@ function Dashboard() {
             const token = localStorage.getItem("access")
             const response = await api.patch(`/projects/${editId}/update/`, { name, description }, { headers: { Authorization: `Bearer ${token}` } })
             console.log(response.data)
-            fetchProjects() // Refresh the project list 
+            fetchProjects()
+            fetchDashboardStats() // Refresh the project list 
             setName("")
             setDescription("")
             setEditId(null)
@@ -99,6 +118,16 @@ function Dashboard() {
     return (
         <>
             <h1>Dashboard Page</h1>
+            <div style={{display: "flex",gap: "20px",marginBottom:"20px"}}>
+                <div style={{border:"1px solid grey", padding:"20px", borderRadius:"10px"}}><h3>Projects</h3>
+                <p>{dashboardStats?.total_projects || 0}</p></div>
+                 <div style={{border:"1px solid grey", padding:"20px", borderRadius:"10px"}}><h3>Quality Score</h3>
+                <p>{dashboardStats?.average_quality_score || 0}</p></div>
+                 <div style={{border:"1px solid grey", padding:"20px", borderRadius:"10px"}}><h3>Privacy Score</h3>
+                <p>{dashboardStats?.average_privacy_score || 0 }</p></div>
+                 <div style={{border:"1px solid grey", padding:"20px", borderRadius:"10px"}}><h3>Datasets</h3>
+                <p>{dashboardStats?.total_datasets || 0}</p></div>
+            </div>
 
             <button
                 onClick={handleGetProfile}
@@ -108,13 +137,21 @@ function Dashboard() {
             <button onClick={() => handlelogout()}>
                 Logout
             </button>
-            <input
+            <div
+    style={{
+        border:"1px solid gray",
+        borderRadius:"10px",
+        padding:"20px",
+        width:"500px",
+        marginBottom:"20px"
+    }}>
+         <input
                 type="text"
                 placeholder="Project Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
             />
-            <input
+            <input 
                 type="text"
                 placeholder="Project Description"
                 value={description}
@@ -124,22 +161,33 @@ function Dashboard() {
         onClick={editId ? handleUpdateProject : handleCreateProject}>
                 {editId ? "Update Project" : "Create Project"}
             </button>
-            <h2>my projects</h2>
-            <ul>
-                {projects.map((project) => (
-                    <li key={project.id}>
-                        <h3>{project.name}</h3>
-                        <p>{project.description}</p>
-                        <button onClick={() => handleDeleteProject(project.id)}>
-                            Delete
-                        </button>
-                        <button onClick={() => handleEditProject(project)}>
-                            Edit
-                        </button>
-                    </li>
-                ))}
-            </ul>
-            <button onClick={()=> navigate(`/projects/${project.id}`)}>open</button>
+
+    </div>
+     <h2>Recent Projects</h2>
+           <div>
+    {projects.map((project) => (
+        <div
+            key={project.id}
+            style={{
+                border: "1px solid gray",
+                padding: "15px",
+                borderRadius: "10px",
+                marginBottom: "15px"
+            }}
+        >
+            <h3>{project.name}</h3>
+
+            <p>{project.description}</p>
+
+            <button onClick={() =>navigate(`/projects/${project.id}`)}>Open</button>
+
+            <button onClick={() =>handleEditProject(project)}>Edit</button>
+
+            <button onClick={() =>handleDeleteProject(project.id)}>Delete</button>
+
+        </div>
+    ))}
+</div>         
         </>
     )
 }
