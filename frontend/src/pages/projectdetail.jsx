@@ -7,6 +7,7 @@ function ProjectDetails(){
     const [qualityData,setQualityData] = useState(null)
     const [privacyData,setPrivacyDate] = useState(null)
     const [downloadLink,setDownloadLink] = useState("")
+    const [history,setHistory] = useState([]);
     const tableStyle = {
     width: "100%",
     borderCollapse: "collapse",
@@ -61,6 +62,17 @@ const tableCell = {
             console.log(error)
         }
     }
+
+    const fetchHistory =async()=>{
+        try{
+            const token = localStorage.getItem("access");
+            const response = await api.get(`/generator/projects/${projectID}/history/`,{headers:{Authorization: `Bearer ${token}`}});
+            setHistory(response.data)
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
     const getRatingColor = (rating) => {
     switch(rating){
         case "Excellent":
@@ -80,6 +92,7 @@ const tableCell = {
         fetchQuality();
         fetchPrivacy();
         fetchDownloadLink();
+        fetchHistory();
     },[])
     return(
         <>
@@ -299,6 +312,31 @@ const tableCell = {
         </a>
     </div>
 )}
+<h2>Generation History</h2>
+
+{
+    history.map((generation) => (
+        <div
+            key={generation.id}
+            style={{
+                border: "1px solid gray",
+                padding: "15px",
+                borderRadius: "10px",
+                marginBottom: "15px"
+            }}
+        >
+            <h3>Generation #{generation.id}</h3>
+
+            <p>Rows: {generation.rows_generated}</p>
+
+            <p>Quality: {generation.quality_score}</p>
+
+            <p>Privacy: {generation.privacy_score}</p>
+
+            <p>{generation.created_at}</p>
+        </div>
+    ))
+}
         </>
     )
 }

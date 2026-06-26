@@ -9,6 +9,8 @@ from datasets.models import DatasetField
 from datasets.serializers import DatasetFieldSerializer
 from uploads.models import UploadedDatasets
 from .ai_generator import generate_synthetic_data
+from .models import SyntheticDataset
+from .serializer import SyntheticDatasetSerializer
 
 from faker import Faker
 import random
@@ -66,6 +68,7 @@ class GenerateSyntheticDatasetView(APIView):
         file_name = f"synthetic_project_{project.id}.csv"
         file_path = os.path.join(settings.MEDIA_ROOT,"synthetic",file_name)
         synthetic_df.to_csv(file_path,index=False)
+        SyntheticDataset.objects.create(project=project,file=f"synthetic/{file_name}",rows_generated = len(synthetic_df),quality_score=0,privacy_score =0)
         return Response({"message":"Synthetic dataset generated","file":f"/media/synthetic/{file_name}","rows": len(synthetic_df)})
 
 
@@ -143,7 +146,8 @@ class DatasetQualityView(APIView):
 
                          "quality_metrics": quality_report,
                          "categorial_metrics": categorial_report})
-    
+
+
 class DatasetPrivacyView(APIView):
     permission_classes=[IsAuthenticated]
     def get(self,request,pk):
@@ -190,3 +194,12 @@ class DatasetPrivacyView(APIView):
             "privacy_rating": privacy_rating,
             
         })
+    
+
+class ProjectGenerateHistoryView(APIView):
+    permission_classes =[IsAuthenticated]
+    def get(self, request,pk):
+        project= get_object_or_404(Project,id=pk,user=request.user)
+        generations = SyntheticDataset.objects.filter(project=project).order_by("-created_at")
+        serializer =SyntheticDatasetSerializer(generations,many=True)
+        return Response(serializer.data)
