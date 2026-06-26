@@ -73,6 +73,28 @@ const tableCell = {
             console.log(error)
         }
     }
+    const downloadHistory = async (generationId) => {
+    try {
+        const token = localStorage.getItem("access");
+
+        const response = await api.get(
+            `/dashboard/download/${generationId}/`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        window.open(
+            `http://127.0.0.1:8000${response.data.file}`,
+            "_blank"
+        );
+
+    } catch (error) {
+        console.log(error);
+    }
+};
     const getRatingColor = (rating) => {
     switch(rating){
         case "Excellent":
@@ -243,9 +265,9 @@ const tableCell = {
 </table>
 <h2>Categorical Metrics</h2>
 {
-    qualityData?.categorial_metrics &&
+    qualityData?.categorical_metrics &&
     Object.entries(
-        qualityData.categorial_metrics
+        qualityData.categorical_metrics
     ).map(([column, values]) => (
 
         <div
@@ -315,7 +337,7 @@ const tableCell = {
 <h2>Generation History</h2>
 
 {
-    history.map((generation) => (
+    history.map((generation,index) => (
         <div
             key={generation.id}
             style={{
@@ -325,7 +347,7 @@ const tableCell = {
                 marginBottom: "15px"
             }}
         >
-            <h3>Generation #{generation.id}</h3>
+            <h3>Version {history.length - index}</h3>
 
             <p>Rows: {generation.rows_generated}</p>
 
@@ -334,6 +356,7 @@ const tableCell = {
             <p>Privacy: {generation.privacy_score}</p>
 
             <p>{generation.created_at}</p>
+            <button onClick={() => downloadHistory(generation.id)}>Download Version</button>
         </div>
     ))
 }
